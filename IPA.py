@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 
+
 def DTheta_estimator_fixed_theta(Theta,X_0,dX_0,demand,N,S,h,b,p):
     '''
     Single run of the IPA for a fixed value of Theta.
@@ -50,7 +51,8 @@ def DTheta_estimator_fixed_theta(Theta,X_0,dX_0,demand,N,S,h,b,p):
     DTheta_estimator  = 1/N*sum(C_derivatives)
     
     return(DTheta_estimator)
-    
+
+
 def Theta_loop(scale,begin,end,stepsize,N,S,h,b,p):
     '''
     loops over all Theta in range with certain stepsize and outputs 
@@ -71,8 +73,7 @@ def Theta_loop(scale,begin,end,stepsize,N,S,h,b,p):
     
     return(DTheta_estimators)
 
-    
-    
+
 def IPA():
     '''
     Calculates IPA estimator for D(Theta). Returns two arrays. One for D(Theta)
@@ -107,9 +108,3 @@ def main():
     
 if __name__ == '__main__':
     main()
-    
-    
-    
-    
-    
-    

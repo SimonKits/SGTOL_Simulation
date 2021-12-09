@@ -10,7 +10,7 @@ def decreasing_gain_example():
     for n in range(5000):
         gain = gain * 0.999
         gains.append(gain)
-    plt.title('Plot of decreasing gain for illustration')
+    plt.title('Plot of decreasing gain for illustrative purposes')
     plt.ylabel('stepsize/gain')
     plt.plot(gains)
 

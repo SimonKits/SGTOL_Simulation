@@ -60,7 +60,7 @@ def Theta_loop(scale,begin,end,stepsize,N,S,h,b,p):
     the same array of exponential demands is used.
     '''
     
-    demand = np.random.exponential(scale,N) #exponential demands
+    demand = np.random.exponential(scale, N) #exponential demands
     runs = int((end - begin)/stepsize) + 1 #number of individual Theta's in range
     DTheta_estimators = np.zeros(runs)
     
@@ -103,7 +103,7 @@ def IPA():
 def main():
     y, x = IPA()
     plt.plot(x,y)
-    plt.show()    
+    plt.show()
     
     
 if __name__ == '__main__':

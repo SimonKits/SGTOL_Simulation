@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.stats as st
 import matplotlib.pyplot as plt
 
 def Simulation(theta, inventory, S, h, b, p, N, demand):
@@ -26,4 +27,30 @@ def MVD_mu(mu,theta, inventory, S, h, b, p, N, K):
             L_min = Simulation(theta, inventory, S, h, b, p, N, X_min)
             Function[j] = (L_plus - L_min)/mu
         D[i] = sum(Function)
-    return np.mean(D)
+    return D
+
+def print_all(D, name):
+        confidence = st.t.interval(alpha=0.95, df=len(D) - 1, loc=np.mean(D), scale=st.sem(D))
+        print(f'________{name}__________')
+        print('Estimate =', np.round(np.mean(D),5))
+        print('confidence interval =', np.round(confidence, 5))
+        print('var =', np.round(st.sem(D)**2,7))  
+        print()
+
+        # for fun
+        plt.figure()
+        plt.title(name)
+        plt.hist(D, bins=100)
+
+if __name__=="__main__":
+    theta = 24.718      # theta_0
+    inventory = 10
+    S = 20
+    h = 4
+    b = 8
+    p = 10
+    N = 20
+    mu = 0.0001
+    K = 1000
+    print_all(MVD_mu(mu,theta, inventory, S, h, b, p, N, K), "MVD_mu")
+    

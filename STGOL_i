@@ -1,0 +1,115 @@
+import numpy as np
+import scipy.stats as st
+import matplotlib.pyplot as plt
+
+def Simulation(theta, inventory, S, h, b, p, N, demand):
+    cost = 0
+    for i in range(N):
+        production = min(S,max(theta-inventory+demand[i],0))
+        cost += h*max(inventory,0) + b*-min(inventory-demand[i],0) + p*production
+        inventory = inventory - demand[i] + production
+    return cost/N
+
+def MVD_mu(mu,theta, inventory, S, h, b, p, N, K):
+    
+    D = np.zeros(K)
+    for i in range(K):
+        X = np.random.exponential(mu,N)
+        Function = np.zeros(N)
+        for j in range(N):
+            X_new = np.random.exponential(scale=mu)
+            Y = np.random.exponential(scale=mu)
+            X_plus = X.copy()
+            X_plus[j] = X_new + Y
+            L_plus = Simulation(theta, inventory, S, h, b, p, N, X_plus)
+            X_min = X.copy()
+            X_min[j] = X_new
+            L_min = Simulation(theta, inventory, S, h, b, p, N, X_min)
+            Function[j] = (L_plus - L_min)/mu
+        D[i] = sum(Function)
+    return D
+
+def IPA_capacity(S,X_0,dX_0,demand,N,Theta,h,b,p):
+    '''
+    Single run of the IPA for a fixed value of S.
+    Returns a number which is a single estimation of D(S).
+    '''
+    #setting values for X_0(theta) and X'_0(Theta)
+    X_cur = X_0
+    dX_cur = dX_0
+
+    #we will also need to remember these values one step back
+    X_prev = 0
+    dX_prev = 0
+
+    #array for the derivatives C'_k(Theta)
+    C_derivatives = np.zeros(N)
+    
+    for k in range(N):
+    
+        #calculate the derivative of C_k(Theta) in parts
+        if X_cur < 0: 
+            hold_der = 0
+        elif k == 0:
+            hold_der = dX_0
+        else:
+            hold_der = 1 if (0 <= Theta - X_prev + demand[k-1] <= S) else dX_prev
+    
+        back_der = -1*dX_cur if (X_cur <= demand[k]) else 0
+    
+        if (0 <= Theta - X_cur - demand[k] <= S):
+            prod_der = (0 - dX_cur) 
+        elif (S > Theta - X_cur - demand[k]): 
+            prod_der = 1
+        else :
+            prod_der = 0
+    
+    
+        #Adding the derivative of C_k(Theta) to the derivatives array
+        C_derivatives[k] = h*hold_der + b*back_der + p*prod_der
+    
+    
+        #updating X'(Theta) we must also remember the previous value
+        dX_prev = dX_cur
+        dX_cur = 1 if (S > Theta - X_cur + demand[k]) else 0
+    
+        #updating X(Theta) again we must remember the previous value
+        X_prev = X_cur
+        production =  min(S,max(Theta-X_cur +demand[k],0))
+        X_cur = X_prev - demand[k] + production
+    
+    #sum C'_k and divide by N
+    DTheta_estimator  = 1/N*sum(C_derivatives)
+    
+    return(DTheta_estimator)
+
+def print_all(D, name):
+        confidence = st.t.interval(alpha=0.95, df=len(D) - 1, loc=np.mean(D), scale=st.sem(D))
+        print(f'________{name}__________')
+        print('Estimate =', np.round(np.mean(D),5))
+        print('confidence interval =', np.round(confidence, 5))
+        print('var =', np.round(st.sem(D)**2,7))  
+        print()
+
+        # for fun
+        plt.figure()
+        plt.title(name)
+        plt.hist(D, bins=100)
+
+if __name__=="__main__":
+    theta = 24.718      # theta_0
+    inventory = 10
+    S = 20
+    h = 4
+    b = 8
+    p = 10
+    N = 20
+    mu = 15
+    K = 100
+    print_all(MVD_mu(mu,theta, inventory, S, h, b, p, N, K), "MVD_mu")
+    
+    demand = np.random.exponential(mu, N)
+    X_0 = theta
+    dX_0 = 0
+    print(IPA_capacity(S,X_0,dX_0,demand,N,theta,h,b,p))
+    

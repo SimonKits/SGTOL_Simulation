@@ -1,0 +1,29 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def Simulation(theta, inventory, S, h, b, p, N, demand):
+    cost = 0
+    for i in range(N):
+        production = min(S,max(theta-inventory+demand[i],0))
+        cost += h*max(inventory,0) + b*-min(inventory-demand[i],0) + p*production
+        inventory = inventory - demand[i] + production
+    return cost/N
+
+def MVD_mu(mu,theta, inventory, S, h, b, p, N, K):
+    
+    D = np.zeros(K)
+    for i in range(K):
+        X = np.random.exponential(mu,N)
+        Function = np.zeros(N)
+        for j in range(N):
+            X_new = np.random.exponential(scale=mu)
+            Y = np.random.exponential(scale=mu)
+            X_plus = X.copy()
+            X_plus[j] = X_new + Y
+            L_plus = Simulation(theta, inventory, S, h, b, p, N, X_plus)
+            X_min = X.copy()
+            X_min[j] = X_new
+            L_min = Simulation(theta, inventory, S, h, b, p, N, X_min)
+            Function[j] = (L_plus - L_min)/mu
+        D[i] = sum(Function)
+    return np.mean(D)
